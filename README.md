@@ -11,7 +11,7 @@
 An end-to-end clinical data science platform analyzing 100,000 inpatient encounters to predict 30-day unplanned hospital readmissions. Built with Marimo reactive notebooks, DuckDB columnar SQL analytics, Scikit-Learn pipelines, and Plotly interactive visualizations.
 
 **Live Deployment:** [Hugging Face Space](https://huggingface.co/spaces/haydermuhib/hospital-readmission-marimo)  
-**Widget Reference:** [Marimo UI Components Showcase](https://huggingface.co/spaces/haydermuhib/hospital-readmission-marimo/widgets)  
+**Widget Reference:** [Marimo UI Components Showcase](marimo_widgets_showcase.py) (run via `pixi run widgets`)  
 **Dataset Scale:** 100,000 calibrated inpatient records (533 KB ZSTD Parquet, 15 MB in-memory RAM)
 
 ![CardioPulse Interactive Dashboard Demo](docs/demo.gif)
