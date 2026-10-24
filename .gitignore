@@ -7,6 +7,6 @@ __pycache__/
 htmlcov/
 __marimo__/
 *.parquet
-!data/hospital_sample.parquet
+!data/hospital_data.parquet
 .DS_Store
 .env

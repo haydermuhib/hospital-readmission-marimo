@@ -24,10 +24,12 @@ def get_duckdb_connection() -> duckdb.DuckDBPyConnection:
 
 def categorize_icd9(code: Optional[str]) -> str:
     """Map ICD-9 diagnostic codes into clinical category groups."""
-    if code is None or pd.isna(code) or str(code).strip() in {"?", "", "None"}:
+    if code is None or pd.isna(code):
         return "Other/Unknown"
 
-    code_str = str(code).strip()
+    code_str = code.strip()
+    if code_str in {"?", "", "None"}:
+        return "Other/Unknown"
 
     # Diabetes specific check
     if code_str.startswith("250"):
@@ -110,7 +112,7 @@ def clean_hospital_data(df: pd.DataFrame) -> pd.DataFrame:
     }
     if "admission_type" in cleaned.columns:
         cleaned["admission_type"] = cleaned["admission_type"].map(
-            lambda x: admission_map.get(x, "General Admission")
+            lambda x: admission_map.get(int(x), "General Admission")
             if isinstance(x, (int, float, np.integer))
             else str(x)
         )
@@ -237,40 +239,39 @@ def generate_synthetic_clinical_cohort(n_records: int = 4000, seed: int = 42) ->
 
 
 def load_hospital_data(
-    use_cache: bool = True,
     cache_path: Path = LOCAL_CACHE_PATH,
-    limit: Optional[int] = None
+    limit: Optional[int] = None,
+    force_remote: bool = False,
 ) -> pd.DataFrame:
-    """Extract hospital records using DuckDB directly from Hugging Face or local cache.
+    """Load cleaned hospital records directly from local storage with DuckDB.
     
-    1. If local cache exists and use_cache=True, loads directly from DuckDB Parquet.
-    2. Otherwise, attempts DuckDB SQL query over Hugging Face dataset via `hf://`.
-    3. If remote is unreachable, falls back to generating a calibrated clinical cohort
-       and saves it to the local cache with DuckDB.
+    1. If local storage cache exists and force_remote=False, loads directly from DuckDB Parquet.
+    2. If local cache is missing or force_remote=True, queries Hugging Face or generates calibrated cohort
+       and saves cleanly to local storage.
     """
     con = get_duckdb_connection()
     cache_path = Path(cache_path)
     cache_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # 1. Check local Parquet cache
-    if use_cache and cache_path.exists():
+    # 1. Primary: load directly from local storage
+    if not force_remote and cache_path.exists():
         query = f"SELECT * FROM '{cache_path}'"
         if limit:
             query += f" LIMIT {limit}"
         return con.execute(query).df()
 
-    # 2. Attempt remote Hugging Face extraction via DuckDB
+    # 2. Remote or fallback extraction
     try:
         hf_query = f"SELECT * FROM '{HF_DATASET_URL}'"
         if limit:
             hf_query += f" LIMIT {limit}"
         raw_df = con.execute(hf_query).df()
         cleaned_df = clean_hospital_data(raw_df)
-    except Exception as exc:
-        # 3. Fallback: generate calibrated clinical cohort
+    except Exception:
+        # Fallback calibrated clinical cohort
         cleaned_df = generate_synthetic_clinical_cohort(n_records=5000 if not limit else limit)
 
-    # Save to local cache using DuckDB Parquet engine for high performance
+    # Save to local storage using DuckDB Parquet engine
     try:
         con.register("df_to_cache", cleaned_df)
         con.execute(f"COPY df_to_cache TO '{cache_path}' (FORMAT PARQUET)")

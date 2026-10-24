@@ -55,7 +55,7 @@ def _():
 
 @app.cell
 def _(load_hospital_data, train_and_evaluate_models):
-    # Load dataset via DuckDB (Hugging Face / cached Parquet)
+    # Load cleaned hospital data directly from local storage with DuckDB
     raw_df = load_hospital_data()
     # Train cross-validated predictive models
     ml_bundle = train_and_evaluate_models(raw_df)
@@ -67,21 +67,21 @@ def _(mo):
     # Application Header & Clinical Provenance
     header = mo.md(
         """
-        <div style="background: #ffffff; border-bottom: 1px solid #e2e8f0; padding: 24px 32px; margin: -16px -16px 24px -16px;">
+        <div style="background: #ffffff; border-bottom: 1px solid #e2e8f0; padding: 20px 24px; margin-bottom: 20px; border-radius: 8px;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
                 <div>
                     <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
                         <span style="background: #0d9488; color: #ffffff; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; padding: 3px 8px; border-radius: 4px; text-transform: uppercase;">Clinical Decision Support</span>
-                        <span style="background: #f1f5f9; color: #475569; font-size: 12px; font-weight: 500; padding: 3px 8px; border-radius: 4px;">DuckDB & Hugging Face Hub (130-US Hospitals)</span>
+                        <span style="background: #f1f5f9; color: #475569; font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 4px;">Local Storage · DuckDB Engine (130-US Hospitals)</span>
                     </div>
-                    <h1 style="font-size: 26px; font-weight: 800; color: #0f172a; margin: 0; line-height: 1.2;">CardioPulse: Hospital Clinical Risk & Readmission Intelligence</h1>
-                    <p style="font-size: 14px; color: #64748b; margin: 6px 0 0 0; max-width: 850px;">
+                    <h1 style="font-size: 24px; font-weight: 800; color: #0f172a; margin: 0; line-height: 1.2;">CardioPulse: Hospital Clinical Risk & Readmission Intelligence</h1>
+                    <p style="font-size: 13px; color: #64748b; margin: 6px 0 0 0; max-width: 850px;">
                         End-to-end analytical intelligence evaluating inpatient encounters, glycemic control, and comorbidity signatures to predict 30-day unplanned hospital readmissions and stratify post-discharge transition care.
                     </p>
                 </div>
                 <div style="text-align: right;">
-                    <div style="font-size: 12px; color: #64748b;">Engine Stack</div>
-                    <div style="font-size: 13px; font-weight: 600; color: #0f172a;">DuckDB · Marimo · Scikit-Learn · Plotly</div>
+                    <div style="font-size: 11px; color: #64748b;">Engine Stack</div>
+                    <div style="font-size: 13px; font-weight: 700; color: #0f172a;">DuckDB · Marimo · Scikit-Learn · Plotly</div>
                 </div>
             </div>
         </div>
@@ -122,20 +122,17 @@ def _(mo, raw_df):
         label="Medication Adjustment:",
     )
 
-    filter_bar = mo.md(
-        f"""
-        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 20px; margin-bottom: 24px;">
-            <div style="font-size: 12px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px;">
-                Cohort Filter Bar
-            </div>
-            <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: center;">
-                <div>{diagnosis_filter}</div>
-                <div>{admission_filter}</div>
-                <div>{med_change_filter}</div>
-                <div style="min-width: 220px;">{stay_slider}</div>
-            </div>
-        </div>
-        """
+    filter_panel = mo.vstack(
+        [
+            mo.md("<div style='font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.05em;'>Cohort Filter Bar</div>"),
+            mo.hstack(
+                [diagnosis_filter, admission_filter, med_change_filter, stay_slider],
+                wrap=True,
+                gap=1.5,
+                align="center",
+            ),
+        ],
+        gap=0.5,
     )
 
     return (
@@ -145,7 +142,7 @@ def _(mo, raw_df):
         admission_filter,
         stay_slider,
         med_change_filter,
-        filter_bar,
+        filter_panel,
     )
 
 
@@ -176,30 +173,30 @@ def _(mo, filtered, compute_kpis):
     kpi_data = compute_kpis(filtered)
 
     kpi_card_html = f"""
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin-bottom: 24px;">
-        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 18px 20px;">
-            <div style="font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase;">Active Inpatient Cohort</div>
-            <div style="font-size: 28px; font-weight: 800; color: #0f172a; margin-top: 4px;">{kpi_data['total_patients']:,} <span style="font-size: 14px; font-weight: 500; color: #94a3b8;">patients</span></div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 20px;">
+        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px 18px;">
+            <div style="font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase;">Active Inpatient Cohort</div>
+            <div style="font-size: 26px; font-weight: 800; color: #0f172a; margin-top: 4px;">{kpi_data['total_patients']:,} <span style="font-size: 13px; font-weight: 500; color: #94a3b8;">patients</span></div>
             <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Evaluated hospital admissions</div>
         </div>
-        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 18px 20px; border-left: 4px solid #e11d48;">
-            <div style="font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase;">30-Day Readmission Rate</div>
-            <div style="font-size: 28px; font-weight: 800; color: #e11d48; margin-top: 4px;">{kpi_data['readmission_rate_pct']:.1f}%</div>
+        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px 18px; border-left: 4px solid #e11d48;">
+            <div style="font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase;">30-Day Readmission Rate</div>
+            <div style="font-size: 26px; font-weight: 800; color: #e11d48; margin-top: 4px;">{kpi_data['readmission_rate_pct']:.1f}%</div>
             <div style="font-size: 11px; color: #64748b; margin-top: 4px;">{kpi_data['readmitted_count']:,} readmissions < 30 days</div>
         </div>
-        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 18px 20px;">
-            <div style="font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase;">Median Inpatient Stay</div>
-            <div style="font-size: 28px; font-weight: 800; color: #0f172a; margin-top: 4px;">{kpi_data['median_stay_days']} <span style="font-size: 14px; font-weight: 500; color: #94a3b8;">days</span></div>
+        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px 18px;">
+            <div style="font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase;">Median Inpatient Stay</div>
+            <div style="font-size: 26px; font-weight: 800; color: #0f172a; margin-top: 4px;">{kpi_data['median_stay_days']} <span style="font-size: 13px; font-weight: 500; color: #94a3b8;">days</span></div>
             <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Hospital bed utilization</div>
         </div>
-        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 18px 20px;">
-            <div style="font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase;">Prior High-Risk Utilizers</div>
-            <div style="font-size: 28px; font-weight: 800; color: #0d9488; margin-top: 4px;">{kpi_data['high_risk_patients']:,} <span style="font-size: 14px; font-weight: 500; color: #94a3b8;">pts</span></div>
-            <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Emergency encounter rate: {kpi_data['emergency_encounter_rate_pct']}%</div>
+        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px 18px;">
+            <div style="font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase;">Prior High-Risk Utilizers</div>
+            <div style="font-size: 26px; font-weight: 800; color: #0d9488; margin-top: 4px;">{kpi_data['high_risk_patients']:,} <span style="font-size: 13px; font-weight: 500; color: #94a3b8;">pts</span></div>
+            <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Emergency rate: {kpi_data['emergency_encounter_rate_pct']}%</div>
         </div>
-        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 18px 20px;">
-            <div style="font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase;">Clinical Complexity</div>
-            <div style="font-size: 28px; font-weight: 800; color: #0f172a; margin-top: 4px;">{kpi_data['avg_medications']} <span style="font-size: 14px; font-weight: 500; color: #94a3b8;">meds/pt</span></div>
+        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px 18px;">
+            <div style="font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase;">Clinical Complexity</div>
+            <div style="font-size: 26px; font-weight: 800; color: #0f172a; margin-top: 4px;">{kpi_data['avg_medications']} <span style="font-size: 13px; font-weight: 500; color: #94a3b8;">meds/pt</span></div>
             <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Avg lab tests: {kpi_data['avg_lab_procedures']}</div>
         </div>
     </div>
@@ -219,7 +216,7 @@ def _(
     plot_risk_matrix,
     plot_medication_impact,
 ):
-    # Visual Analytics Generation
+    # Tab 1 & Tab 2 Visualizations Generation
     cohort_diag = readmission_by_cohort(filtered, "primary_diagnosis_group")
     cohort_age = readmission_by_cohort(filtered, "age_group")
     med_df = medication_change_impact(filtered)
@@ -237,13 +234,13 @@ def _(
     stay_summary_html = """
     <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px 20px; height: 100%;">
         <div style="font-size: 14px; font-weight: 700; color: #0f172a; margin-bottom: 12px;">Length of Stay Escalation Analysis</div>
-        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
             <thead>
                 <tr style="border-bottom: 1px solid #cbd5e1; text-align: left; color: #64748b;">
-                    <th style="padding: 8px 4px;">Stay Duration</th>
-                    <th style="padding: 8px 4px; text-align: right;">Patients</th>
-                    <th style="padding: 8px 4px; text-align: right;">Avg Meds</th>
-                    <th style="padding: 8px 4px; text-align: right;">Readmit Rate</th>
+                    <th style="padding: 6px 4px;">Stay Duration</th>
+                    <th style="padding: 6px 4px; text-align: right;">Patients</th>
+                    <th style="padding: 6px 4px; text-align: right;">Avg Meds</th>
+                    <th style="padding: 6px 4px; text-align: right;">Readmit Rate</th>
                 </tr>
             </thead>
             <tbody>
@@ -252,55 +249,54 @@ def _(
         rate_color = "#e11d48" if row["readmission_rate_pct"] >= 20.0 else "#0d9488"
         stay_summary_html += f"""
                 <tr style="border-bottom: 1px solid #f1f5f9;">
-                    <td style="padding: 10px 4px; font-weight: 600; color: #1e293b;">{row['stay_bracket']}</td>
-                    <td style="padding: 10px 4px; text-align: right; color: #475569;">{row['patient_count']:,}</td>
-                    <td style="padding: 10px 4px; text-align: right; color: #475569;">{row['avg_medications']}</td>
-                    <td style="padding: 10px 4px; text-align: right; font-weight: 700; color: {rate_color};">{row['readmission_rate_pct']:.1f}%</td>
+                    <td style="padding: 8px 4px; font-weight: 600; color: #1e293b;">{row['stay_bracket']}</td>
+                    <td style="padding: 8px 4px; text-align: right; color: #475569;">{row['patient_count']:,}</td>
+                    <td style="padding: 8px 4px; text-align: right; color: #475569;">{row['avg_medications']}</td>
+                    <td style="padding: 8px 4px; text-align: right; font-weight: 700; color: {rate_color};">{row['readmission_rate_pct']:.1f}%</td>
                 </tr>
         """
     stay_summary_html += """
             </tbody>
         </table>
-        <div style="font-size: 11px; color: #64748b; margin-top: 14px; line-height: 1.4;">
+        <div style="font-size: 11px; color: #64748b; margin-top: 12px; line-height: 1.4;">
             <b>Clinical Insight:</b> Patients staying >7 days exhibit significantly elevated polypharmacy and heightened 30-day post-discharge vulnerability.
         </div>
     </div>
     """
 
-    analytics_tab1 = mo.md(
-        f"""
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
-            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px;">{mo.ui.plotly(fig_diag)}</div>
-            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px;">{mo.ui.plotly(fig_age)}</div>
-        </div>
-        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 24px;">
-            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px;">{mo.ui.plotly(fig_matrix)}</div>
-            <div>{stay_summary_html}</div>
-        </div>
-        """
+    tab1_view = mo.vstack(
+        [
+            mo.hstack([mo.ui.plotly(fig_diag), mo.ui.plotly(fig_age)], widths="equal", gap=1.5),
+            mo.hstack([mo.ui.plotly(fig_matrix), mo.md(stay_summary_html)], widths=[2, 1], gap=1.5),
+        ],
+        gap=1.5,
     )
 
-    analytics_tab2 = mo.md(
-        f"""
-        <div style="display: grid; grid-template-columns: 1.6fr 1fr; gap: 20px; margin-bottom: 24px;">
-            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px;">{mo.ui.plotly(fig_med)}</div>
-            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px;">
-                <div style="font-size: 15px; font-weight: 700; color: #0f172a; margin-bottom: 12px;">Glycemic Control & Medication Rationale</div>
-                <div style="font-size: 13px; color: #475569; line-height: 1.6;">
-                    <p><b>A1C Result Analysis:</b> Patients with severely elevated HbA1c (&gt;8.0%) exhibit the highest readmission vulnerability. Inpatient medication adjustments reflect an active clinical response to uncontrolled diabetes.</p>
-                    <p><b>Clinical Takeaway:</b> Routine pre-discharge diabetes education and dedicated post-discharge glycemic titration protocols can mitigate up to 35% of avoidable 30-day readmissions.</p>
+    tab2_view = mo.hstack(
+        [
+            mo.ui.plotly(fig_med),
+            mo.md(
+                """
+                <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; height: 100%;">
+                    <div style="font-size: 15px; font-weight: 700; color: #0f172a; margin-bottom: 12px;">Glycemic Control & Medication Rationale</div>
+                    <div style="font-size: 13px; color: #475569; line-height: 1.6;">
+                        <p><b>A1C Result Analysis:</b> Patients with severely elevated HbA1c (&gt;8.0%) exhibit the highest readmission vulnerability. Inpatient medication adjustments reflect an active clinical response to uncontrolled diabetes.</p>
+                        <p><b>Clinical Takeaway:</b> Routine pre-discharge diabetes education and dedicated post-discharge glycemic titration protocols can mitigate up to 35% of avoidable 30-day readmissions.</p>
+                    </div>
                 </div>
-            </div>
-        </div>
-        """
+                """
+            ),
+        ],
+        widths=[1.6, 1],
+        gap=1.5,
     )
 
-    return analytics_tab1, analytics_tab2
+    return tab1_view, tab2_view
 
 
 @app.cell
-def _(mo, filtered, execute_custom_sql):
-    # Interactive DuckDB SQL Sandbox
+def _(mo):
+    # Cell A: Create DuckDB SQL Input UI Element (No value access in this cell!)
     sql_input = mo.ui.text_area(
         value="""SELECT
     primary_diagnosis_group,
@@ -313,26 +309,34 @@ ORDER BY readmit_rate_pct DESC""",
         label="DuckDB In-Memory SQL Query:",
         rows=5,
     )
+    return (sql_input,)
 
+
+@app.cell
+def _(mo, filtered, execute_custom_sql, sql_input):
+    # Cell B: Consume sql_input.value in a separate cell to avoid Marimo UIElement error
     try:
         sql_df = execute_custom_sql(filtered, sql_input.value)
         sql_table = mo.ui.table(sql_df, page_size=6)
     except Exception as e:
-        sql_table = mo.md(f"<div style='color: #e11d48; font-size: 13px;'>SQL Query Error: {str(e)}</div>")
+        sql_table = mo.md(f"<div style='color: #e11d48; font-size: 13px; padding: 12px; background: #fff1f2; border-radius: 6px;'><b>SQL Query Error:</b> {str(e)}</div>")
 
-    sql_sandbox = mo.md(
-        f"""
-        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-bottom: 24px;">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-                <div style="font-size: 15px; font-weight: 700; color: #0f172a;">DuckDB In-Memory Query Engine</div>
-                <span style="font-size: 11px; background: #e0f2fe; color: #0369a1; padding: 3px 8px; border-radius: 4px; font-weight: 600;">Active Table: `patients`</span>
-            </div>
-            <div style="margin-bottom: 14px;">{sql_input}</div>
-            <div>{sql_table}</div>
-        </div>
-        """
+    sql_sandbox = mo.vstack(
+        [
+            mo.md(
+                """
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                    <div style="font-size: 15px; font-weight: 700; color: #0f172a;">DuckDB In-Memory Query Engine</div>
+                    <span style="font-size: 11px; background: #e0f2fe; color: #0369a1; padding: 3px 8px; border-radius: 4px; font-weight: 600;">Active Table: `patients` (from Local Storage)</span>
+                </div>
+                """
+            ),
+            sql_input,
+            sql_table,
+        ],
+        gap=1.0,
     )
-    return sql_input, sql_table, sql_sandbox
+    return sql_df, sql_table, sql_sandbox
 
 
 @app.cell
@@ -363,41 +367,39 @@ def _(
 
     fig_imp = plot_feature_importance(feature_imp_df, top_n=8)
 
-    ml_section = mo.md(
-        f"""
-        <div style="margin-top: 32px; margin-bottom: 24px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                <div>
-                    <h2 style="font-size: 20px; font-weight: 800; color: #0f172a; margin: 0;">Clinical Machine Learning & Risk Triage Models</h2>
-                    <p style="font-size: 13px; color: #64748b; margin: 4px 0 0 0;">Preprocessed via Scikit-Learn Pipelines with class-weight calibration for healthcare triage.</p>
-                </div>
-                <div style="display: flex; gap: 12px;">
-                    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 14px; text-align: center;">
-                        <div style="font-size: 11px; color: #64748b;">ROC-AUC Score</div>
-                        <div style="font-size: 18px; font-weight: 800; color: #0d9488;">{metrics_gb['roc_auc']:.3f}</div>
+    ml_section = mo.vstack(
+        [
+            mo.md(
+                f"""
+                <div style="margin-top: 24px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h2 style="font-size: 18px; font-weight: 800; color: #0f172a; margin: 0;">Clinical Machine Learning & Risk Triage Models</h2>
+                        <p style="font-size: 12px; color: #64748b; margin: 4px 0 0 0;">Preprocessed via Scikit-Learn Pipelines with class-weight calibration for healthcare triage.</p>
                     </div>
-                    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 14px; text-align: center;">
-                        <div style="font-size: 11px; color: #64748b;">Recall (Sensitivity)</div>
-                        <div style="font-size: 18px; font-weight: 800; color: #0f172a;">{metrics_gb['recall']:.3f}</div>
+                    <div style="display: flex; gap: 10px;">
+                        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 6px 12px; text-align: center;">
+                            <div style="font-size: 10px; color: #64748b; text-transform: uppercase;">ROC-AUC Score</div>
+                            <div style="font-size: 16px; font-weight: 800; color: #0d9488;">{metrics_gb['roc_auc']:.3f}</div>
+                        </div>
+                        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 6px 12px; text-align: center;">
+                            <div style="font-size: 10px; color: #64748b; text-transform: uppercase;">Recall (Sensitivity)</div>
+                            <div style="font-size: 16px; font-weight: 800; color: #0f172a;">{metrics_gb['recall']:.3f}</div>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 20px;">
-                <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px;">{mo.ui.plotly(fig_curves)}</div>
-                <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px;">{mo.ui.plotly(fig_cm)}</div>
-            </div>
-            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
-                {mo.ui.plotly(fig_imp)}
-            </div>
-        </div>
-        """
+                """
+            ),
+            mo.hstack([mo.ui.plotly(fig_curves), mo.ui.plotly(fig_cm)], widths=[2, 1], gap=1.5),
+            mo.ui.plotly(fig_imp),
+        ],
+        gap=1.5,
     )
     return ml_section, metrics_gb, curves_gb, feature_imp_df
 
 
 @app.cell
 def _(mo, all_diagnoses):
-    # Live Patient Simulator Controls
+    # Simulator Input Controls (Created in Cell 1)
     sim_age = mo.ui.dropdown(
         options=["[20-40)", "[40-50)", "[50-60)", "[60-70)", "[70-80)", "[80-90)"],
         value="[70-80)",
@@ -443,7 +445,7 @@ def _(
     sim_a1c,
     sim_change,
 ):
-    # Reactive Live Patient Risk Inference
+    # Reactive Live Patient Risk Inference (Consumes inputs in Cell 2)
     patient_input = {
         "age_group": sim_age.value,
         "gender": sim_gender.value,
@@ -473,58 +475,61 @@ def _(
         badge_color = "#0d9488"
         badge_bg = "#ccfbf1"
 
-    drivers_html = "".join([f"<li style='margin-bottom: 4px;'>{d}</li>" for d in pred_res["risk_drivers"]])
+    drivers_html = "".join([f"<li style='margin-bottom: 3px;'>{d}</li>" for d in pred_res["risk_drivers"]])
 
-    simulator_view = mo.md(
+    result_card = mo.md(
         f"""
-        <div style="background: #ffffff; border: 2px solid #cbd5e1; border-radius: 12px; padding: 24px; margin-top: 24px; margin-bottom: 32px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #f1f5f9; padding-bottom: 12px;">
-                <div>
-                    <span style="background: #0f172a; color: #ffffff; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px; text-transform: uppercase;">Interactive Tool</span>
-                    <h2 style="font-size: 20px; font-weight: 800; color: #0f172a; margin: 6px 0 0 0;">Live Patient Discharge Risk Calculator & Triage Simulator</h2>
-                </div>
-                <div style="font-size: 12px; color: #64748b;">Instant model inference on patient profile</div>
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 18px; height: 100%;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase;">Readmission Probability</span>
+                <span style="background: {badge_bg}; color: {badge_color}; font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 12px;">{pred_res['risk_tier']}</span>
             </div>
-            <div style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 28px;">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                    <div>{sim_age}</div>
-                    <div>{sim_gender}</div>
-                    <div>{sim_diag}</div>
-                    <div>{sim_a1c}</div>
-                    <div>{sim_change}</div>
-                    <div>{sim_stay}</div>
-                    <div>{sim_emergency}</div>
-                    <div>{sim_inpatient}</div>
-                    <div>{sim_meds}</div>
-                    <div>{sim_labs}</div>
-                </div>
-                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between;">
-                    <div>
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase;">Readmission Probability</span>
-                            <span style="background: {badge_bg}; color: {badge_color}; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 20px;">{pred_res['risk_tier']}</span>
-                        </div>
-                        <div style="font-size: 42px; font-weight: 900; color: {badge_color}; margin: 8px 0;">{pred_res['risk_percentage']}%</div>
-                        <div style="font-size: 12px; font-weight: 700; color: #334155; margin-top: 12px; text-transform: uppercase;">Active Contributing Factors:</div>
-                        <ul style="font-size: 13px; color: #475569; margin: 6px 0 0 0; padding-left: 18px;">
-                            {drivers_html}
-                        </ul>
-                    </div>
-                    <div style="background: #ffffff; border-left: 4px solid {badge_color}; padding: 12px; border-radius: 4px; margin-top: 16px;">
-                        <div style="font-size: 11px; font-weight: 700; color: {badge_color}; text-transform: uppercase;">Targeted Clinical Recommendation</div>
-                        <div style="font-size: 12px; color: #1e293b; margin-top: 4px; font-weight: 500;">{pred_res['clinical_recommendation']}</div>
-                    </div>
-                </div>
+            <div style="font-size: 38px; font-weight: 900; color: {badge_color}; margin: 6px 0;">{pred_res['risk_percentage']}%</div>
+            <div style="font-size: 11px; font-weight: 700; color: #334155; margin-top: 8px; text-transform: uppercase;">Active Contributing Factors:</div>
+            <ul style="font-size: 12px; color: #475569; margin: 4px 0 0 0; padding-left: 16px;">
+                {drivers_html}
+            </ul>
+            <div style="background: #ffffff; border-left: 4px solid {badge_color}; padding: 10px; border-radius: 4px; margin-top: 14px;">
+                <div style="font-size: 11px; font-weight: 700; color: {badge_color}; text-transform: uppercase;">Targeted Clinical Recommendation</div>
+                <div style="font-size: 12px; color: #1e293b; margin-top: 3px; font-weight: 500;">{pred_res['clinical_recommendation']}</div>
             </div>
         </div>
         """
     )
+
+    controls_panel = mo.vstack(
+        [
+            mo.hstack([sim_age, sim_gender, sim_diag], widths="equal"),
+            mo.hstack([sim_a1c, sim_change, sim_stay], widths="equal"),
+            mo.hstack([sim_emergency, sim_inpatient, sim_meds, sim_labs], widths="equal"),
+        ],
+        gap=1.0,
+    )
+
+    simulator_view = mo.vstack(
+        [
+            mo.md(
+                """
+                <div style="margin-top: 24px; margin-bottom: 8px;">
+                    <span style="background: #0f172a; color: #ffffff; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; text-transform: uppercase;">Interactive Tool</span>
+                    <h2 style="font-size: 18px; font-weight: 800; color: #0f172a; margin: 4px 0 0 0;">Live Patient Discharge Risk Calculator & Triage Simulator</h2>
+                    <p style="font-size: 12px; color: #64748b; margin: 2px 0 0 0;">Instant model inference evaluating patient discharge attributes.</p>
+                </div>
+                """
+            ),
+            mo.hstack([controls_panel, result_card], widths=[1.6, 1], gap=1.5),
+        ],
+        gap=1.0,
+    )
+
     return (
         patient_input,
         pred_res,
         badge_color,
         badge_bg,
         drivers_html,
+        result_card,
+        controls_panel,
         simulator_view,
     )
 
@@ -533,19 +538,19 @@ def _(
 def _(
     mo,
     header,
-    filter_bar,
+    filter_panel,
     kpi_view,
-    analytics_tab1,
-    analytics_tab2,
+    tab1_view,
+    tab2_view,
     sql_sandbox,
-    ml_section,
     simulator_view,
+    ml_section,
 ):
-    # Main Application Assembly with Tabs
+    # Main Application Assembly with Native Tabs
     tabs = mo.ui.tabs(
         {
-            "Inpatient & Diagnostic Cohorts": analytics_tab1,
-            "Glycemic & Medication Impact": analytics_tab2,
+            "Inpatient & Diagnostic Cohorts": tab1_view,
+            "Glycemic & Medication Impact": tab2_view,
             "DuckDB SQL Engine": sql_sandbox,
         }
     )
@@ -553,12 +558,13 @@ def _(
     dashboard = mo.vstack(
         [
             header,
-            filter_bar,
+            filter_panel,
             kpi_view,
             tabs,
             simulator_view,
             ml_section,
-        ]
+        ],
+        gap=1.5,
     )
     dashboard
     return tabs, dashboard
