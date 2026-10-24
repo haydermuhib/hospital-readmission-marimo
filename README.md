@@ -140,3 +140,9 @@ pixi run ingest
 | **Gradient Boosting** | `0.804` | `0.648` | `0.785` | Superior capture of non-linear comorbidity interactions |
 
 *Note: Models are evaluated at an optimized healthcare triage decision threshold of `0.35` to prioritize high recall and prevent unmonitored high-risk patient discharges.*
+
+---
+
+## License
+
+This project is licensed under the terms of the [MIT License](file:///home/haider/Desktop/Github%20Portfolio/01%20_marimo_hospital/LICENSE).
