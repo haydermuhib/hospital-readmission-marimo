@@ -9,6 +9,8 @@
 
 An end-to-end Data Analyst & Data Scientist clinical intelligence platform analyzing hospital inpatient encounters, glycemic biomarkers, and comorbidity signatures to predict 30-day unplanned hospital readmissions and stratify post-discharge care.
 
+![CardioPulse Interactive Dashboard Demo](docs/demo.gif)
+
 ---
 
 ## Architecture Overview
