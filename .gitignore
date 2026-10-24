@@ -10,3 +10,4 @@ __marimo__/
 !data/hospital_data.parquet
 .DS_Store
 .env
+PROJECT_BLUEPRINT.md

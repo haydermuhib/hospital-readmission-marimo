@@ -144,7 +144,6 @@ Models are trained on an 80/20 stratified split with balanced class weighting to
 ├── pixi.toml                # Pixi environment configuration and project tasks
 ├── pixi.lock                # Locked dependency tree for cross-platform reproducibility
 ├── README.md                # Technical overview and clinical findings
-├── PROJECT_BLUEPRINT.md     # Reusable master template for replicating modern data science projects
 ├── LICENSE                  # MIT License
 ├── app.py                   # Reactive Marimo dashboard and clinical triage calculator
 ├── main.py                  # Production entrypoint for cloud deployment
