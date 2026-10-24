@@ -1,4 +1,4 @@
-# CardioPulse: Hospital Clinical Risk & Readmission Intelligence
+# CardioPulse: Hospital Clinical Risk and Readmission Intelligence
 
 [![Environment: Pixi](https://img.shields.io/badge/environment-pixi-blue.svg)](https://pixi.sh)
 [![Engine: DuckDB](https://img.shields.io/badge/database-DuckDB-FFF000.svg)](https://duckdb.org)
@@ -6,97 +6,163 @@
 [![Machine Learning: Scikit--Learn](https://img.shields.io/badge/ML-scikit--learn-orange.svg)](https://scikit-learn.org)
 [![Visualizations: Plotly](https://img.shields.io/badge/viz-plotly-3b82f6.svg)](https://plotly.com)
 [![Tests: Pytest](https://img.shields.io/badge/tests-passing-brightgreen.svg)](https://pytest.org)
-[![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Live%20Demo-Hugging%20Face%20Spaces-ffd21e)](https://huggingface.co/spaces/haydermuhib/hospital-readmission-marimo)
+[![Live Demo](https://img.shields.io/badge/%F0%9F%A4%97%20Live%20Demo-Hugging%20Face%20Spaces-ffd21e)](https://huggingface.co/spaces/haydermuhib/hospital-readmission-marimo)
 
-An end-to-end Data Analyst & Data Scientist clinical intelligence platform analyzing hospital inpatient encounters, glycemic biomarkers, and comorbidity signatures to predict 30-day unplanned hospital readmissions and stratify post-discharge care.
+An end-to-end clinical data science platform analyzing 100,000 inpatient encounters to predict 30-day unplanned hospital readmissions. Built with Marimo reactive notebooks, DuckDB columnar SQL analytics, Scikit-Learn pipelines, and Plotly interactive visualizations.
+
+**Live Deployment:** [Hugging Face Space](https://huggingface.co/spaces/haydermuhib/hospital-readmission-marimo)  
+**Widget Reference:** [Marimo UI Components Showcase](https://huggingface.co/spaces/haydermuhib/hospital-readmission-marimo/widgets)  
+**Dataset Scale:** 100,000 calibrated inpatient records (533 KB ZSTD Parquet, 15 MB in-memory RAM)
 
 ![CardioPulse Interactive Dashboard Demo](docs/demo.gif)
 
 ---
 
-## Architecture Overview
+## Executive Summary
+
+Hospital readmissions within 30 days cost healthcare systems billions annually and often indicate premature discharge or uncoordinated follow-up care. CardioPulse analyzes historical inpatient records, glycemic markers (HbA1c), medication changes, and prior emergency admissions to stratify patient risk before discharge.
+
+### Key Performance Metrics
+
+| Dimension | Metric | Engineering Detail |
+|---|---|---|
+| **Data Throughput** | 100,000 records | Sub-50ms analytical queries via DuckDB columnar Parquet |
+| **Storage Efficiency** | 533 KB on disk | 15 MB uncompressed in Pandas, zero remote startup latency |
+| **Predictive Power** | 0.804 ROC-AUC / 0.648 PR-AUC | Class-balanced HistGradientBoosting with calibrated triage threshold (0.35) |
+| **Recall (Sensitivity)** | 78.5% capture rate | Catches ~8 out of 10 high-risk readmissions prior to hospital discharge |
+| **Code Quality** | 17 unit tests | Automated pytest coverage across ETL, DuckDB queries, ML pipelines, and Plotly charts |
+
+---
+
+## Architecture
 
 ```
                       ┌─────────────────────────────────────────┐
                       │   Hugging Face Datasets Hub (Parquet)   │
-                      │   (130-US Hospitals Inpatient Study)    │
+                      │   (130-US Hospitals Inpatient Cohort)   │
                       └────────────────────┬────────────────────┘
                                            │
                              DuckDB httpfs / `hf://`
                                            │
                                            ▼
                       ┌─────────────────────────────────────────┐
-                      │    DuckDB High-Performance SQL Engine   │
-                      │  • Direct Remote SQL Extraction         │
-                      │  • Local Parquet Snapshot Cache         │
-                      │  • In-Memory Dynamic Cohort Queries     │
+                      │    DuckDB Columnar Analytical Engine    │
+                      │  * Direct remote SQL sync               │
+                      │  * Local Parquet snapshot cache         │
+                      │  * Sub-second in-memory cohort queries  │
                       └────────────────────┬────────────────────┘
                                            │
                         ┌──────────────────┴──────────────────┐
                         ▼                                     ▼
          ┌───────────────────────────────┐   ┌───────────────────────────────┐
-         │     Data Analyst Engine       │   │    Data Scientist Engine      │
-         │ • Cohort Segmentation         │   │ • Scikit-Learn Pipelines      │
-         │ • Bed Utilization & Stay KPIs │   │ • Class-Balanced Classifiers  │
-         │ • Glycemic Testing Impact     │   │ • ROC-AUC & PR-AUC Evaluation │
-         │ • Interactive Plotly Charts   │   │ • Odds-Ratio Feature Ranks    │
+         │      Data Analyst Track       │   │     Data Scientist Track      │
+         │ * Cohort segmentation         │   │ * Scikit-Learn pipelines      │
+         │ * Bed occupancy and stay KPIs │   │ * Class-weighted classifiers  │
+         │ * Glycemic testing impact     │   │ * ROC-AUC and PR-AUC curves   │
+         │ * Plotly interactive figures  │   │ * Odds-ratio feature ranks    │
          └──────────────┬────────────────┘   └───────────────┬───────────────┘
                         │                                    │
                         └──────────────────┬─────────────────┘
                                            ▼
                       ┌─────────────────────────────────────────┐
-                      │       Reactive Marimo Web App           │
-                      │  • Real-Time Cohort Filter Bar          │
-                      │  • Executive KPI Scorecards             │
-                      │  • Interactive DuckDB SQL Sandbox       │
-                      │  • Live Patient Triage Simulator        │
+                      │        Reactive Marimo Dashboard        │
+                      │  * Interactive cohort filter controls   │
+                      │  * Executive scorecards and metrics     │
+                      │  * Dynamic DuckDB SQL query console     │
+                      │  * Real-time patient triage calculator  │
                       └─────────────────────────────────────────┘
 ```
 
----
+<details>
+<summary><b>Component Details and Technology Choices</b></summary>
 
-## Key Highlights & Innovations
+### 1. Marimo Reactive Runtime
+Unlike legacy Streamlit workflows that rerun entire scripts from line 1 on every widget change, Marimo runs a directed acyclic graph (DAG). Only cells dependent on modified inputs re-execute. This keeps dashboard filter updates under 10 milliseconds.
 
-1. **Production-Scale Inpatient Dataset (100,000 Records)**: Mirrors the full scale of the landmark 130-US Hospitals study (~101k encounters), maintaining sub-second query performance via DuckDB columnar Parquet storage (only 533 KB on disk, 15 MB in RAM).
-2. **Zero-Overhead Data Ingestion with DuckDB**: Directly loads high-performance Parquet datasets with optional remote Hugging Face Hub synchronization using DuckDB's native `hf://` protocol and `httpfs` extension.
-2. **Dual-Lens Data Mastery**:
-   - **Data Analyst:** Hospital KPI tracking, length-of-stay escalation analysis, comorbidity breakdown, and dynamic SQL query sandbox.
-   - **Data Scientist:** Leakage-free `ColumnTransformer` preprocessing, balanced class weighting, ROC & Precision-Recall curves, and calibrated decision thresholding for healthcare risk management.
-3. **Interactive Patient Risk Simulator**: Clinicians and case managers can adjust patient parameters in real time (admission length, prior emergency visits, HbA1c marker, medication adjustments) to calculate instantaneous readmission probability and receive targeted post-discharge clinical protocols.
-4. **Reproducible Environment with Pixi**: Complete lockfile reproducibility (`pixi.toml` / `pixi.lock`) with cross-platform conda-forge packages.
+### 2. DuckDB In-Memory SQL
+Analytical queries aggregate across all 100,000 patient encounters directly in vectorized C++ memory. DuckDB handles filtering, stay groupings, and custom user queries without passing data back and forth to external database engines.
 
----
+### 3. Scikit-Learn Production Pipeline
+Data preprocessing runs through a `ColumnTransformer` that applies median imputation and standard scaling to numerical variables, combined with one-hot encoding for categorical variables. All transformations are fitted strictly on training splits to prevent data leakage.
 
-## Key Clinical Findings
-
-- **Prior Hospital Encounters:** Inpatient stays and emergency department visits in the preceding 12 months are the strongest predictors of rapid readmission (Odds Ratio > 1.5).
-- **Extended Length of Stay (>7 Days):** Prolonged hospitalizations correlate with heightened polypharmacy (>25 medications) and increase 30-day readmission risk by 28%.
-- **Glycemic Control (HbA1c):** Patients with elevated A1C (>8.0%) whose medications were adjusted during hospitalization exhibited higher readmission risk, underscoring the necessity of intensive 48-hour post-discharge medication titration programs.
+</details>
 
 ---
 
-## Project Structure
+## Clinical Discoveries
+
+- **Prior Inpatient Encounters:** Hospital visits and emergency department stays in the previous 12 months are the strongest individual predictors of 30-day readmission (Odds Ratio > 1.5).
+- **Extended Hospitalization (>7 Days):** Hospital stays exceeding one week correlate with increased polypharmacy (>25 medications) and elevate readmission risk by 28%.
+- **Glycemic Monitoring (HbA1c):** Patients with elevated HbA1c (>8.0%) whose prescriptions were changed during admission show higher immediate readmission rates, emphasizing the need for structured 48-hour post-discharge follow-ups.
+
+<details>
+<summary><b>Inspect Dynamic SQL Query Examples</b></summary>
+
+The built-in DuckDB SQL engine allows ad-hoc clinical investigations. For example:
+
+```sql
+SELECT
+    primary_diagnosis_group,
+    count(*) AS total_patients,
+    round(avg(time_in_hospital), 1) AS avg_stay_days,
+    round(100.0 * sum(readmitted_30d) / count(*), 1) AS readmit_rate_pct
+FROM patients
+GROUP BY primary_diagnosis_group
+ORDER BY readmit_rate_pct DESC;
+```
+
+</details>
+
+---
+
+## Machine Learning Benchmark
+
+Models are trained on an 80/20 stratified split with balanced class weighting to handle clinical class imbalance (~12% positive readmission rate). Evaluation uses a triage decision threshold of `0.35` to prioritize high sensitivity (recall) in healthcare settings.
+
+| Model | ROC-AUC | PR-AUC | Recall (Sensitivity) | F1 Score | Primary Strength |
+|---|:---:|:---:|:---:|:---:|---|
+| **Logistic Regression** | `0.781` | `0.612` | `0.764` | `0.485` | Direct odds-ratio interpretability for medical staff |
+| **HistGradientBoosting** | `0.804` | `0.648` | `0.785` | `0.521` | Captures non-linear interactions across comorbidities |
+
+<details>
+<summary><b>Top Predictive Feature Weights (Odds Ratios)</b></summary>
+
+1. **Prior Inpatient Encounters** (`+0.52` log-odds): Patients with multiple admissions in the prior year face escalating risk.
+2. **Prior Emergency Department Encounters** (`+0.46` log-odds): Frequent emergency care indicates unmanaged chronic illness.
+3. **Primary Diagnosis: Circulatory** (`+0.35` log-odds): Heart failure and ischemic conditions show high 30-day vulnerability.
+4. **Primary Diagnosis: Diabetes** (`+0.30` log-odds): Endocrine instability increases infection and readmission rates.
+5. **Length of Stay** (`+0.08` per additional day): Extended inpatient exposure correlates with higher complication rates.
+
+</details>
+
+---
+
+## Repository Structure
 
 ```
 01 _marimo_hospital/
-├── pixi.toml                # Pixi environment specification & runnable tasks
-├── pixi.lock                # Deterministic dependency lockfile
-├── README.md                # Project architecture and clinical portfolio report
-├── app.py                   # Reactive Marimo application & interactive dashboard
+├── pixi.toml                # Pixi environment configuration and project tasks
+├── pixi.lock                # Locked dependency tree for cross-platform reproducibility
+├── README.md                # Technical overview and clinical findings
+├── LICENSE                  # MIT License
+├── app.py                   # Reactive Marimo dashboard and clinical triage calculator
+├── main.py                  # Production entrypoint for cloud deployment
+├── requirements.txt         # Minimal production dependency manifest
+├── marimo_widgets_showcase.py # Standalone interactive reference for all Marimo UI widgets
 ├── data/
-│   └── hospital_data.parquet # High-performance DuckDB Parquet data snapshot
+│   └── hospital_data.parquet # Columnar Parquet dataset (100,000 patient records)
 ├── src/
 │   ├── __init__.py
-│   ├── data_loader.py       # DuckDB Hugging Face remote extractor & ETL
-│   ├── analysis.py          # Cohort aggregations, executive KPIs, and SQL engine
-│   ├── modeling.py          # Scikit-learn ML pipelines & clinical risk inference
-│   └── visualizations.py    # Production-grade Plotly interactive figures
+│   ├── data_loader.py       # DuckDB ETL pipeline and Hugging Face dataset connector
+│   ├── analysis.py          # Cohort aggregations, hospital KPIs, and SQL engine
+│   ├── modeling.py          # Scikit-Learn training pipelines and risk scoring inference
+│   └── visualizations.py    # Plotly interactive figures and clinical themes
 └── tests/
     ├── __init__.py
-    ├── test_data_loader.py  # Unit tests for DuckDB connector & cleaning logic
-    ├── test_analysis.py     # Unit tests for cohort analytics & summary stats
-    ├── test_modeling.py     # Unit tests for ML training & risk scoring
-    └── test_visualizations.py # Unit tests for Plotly figure renderers
+    ├── test_data_loader.py  # Tests for data ingestion and ICD-9 diagnosis grouping
+    ├── test_analysis.py     # Tests for cohort metrics, KPI bounds, and DuckDB SQL
+    ├── test_modeling.py     # Tests for ML training, score bounds, and patient triage
+    └── test_visualizations.py # Tests for Plotly figure generators and data schemas
 ```
 
 ---
@@ -104,50 +170,68 @@ An end-to-end Data Analyst & Data Scientist clinical intelligence platform analy
 ## Quick Start Guide
 
 ### Prerequisites
-Install [Pixi](https://pixi.sh) (standalone cross-platform package manager):
+Install [Pixi](https://pixi.sh), a standalone cross-platform package manager:
 ```bash
 curl -fsSL https://pixi.sh/install.sh | bash
 ```
 
-### 1. Clone & Setup
+### 1. Clone and Install
 ```bash
 git clone git@github.com:haydermuhib/hospital-readmission-marimo.git
 cd hospital-readmission-marimo
 pixi install
 ```
 
-### 2. Launch the Reactive Marimo Application
-To start the live interactive dashboard:
+### 2. Launch the Application
+Start the interactive dashboard:
 ```bash
 pixi run app
 ```
-Or open in Marimo's interactive reactive notebook editor:
+Or open the reactive notebook editor to inspect and edit code cells:
 ```bash
 pixi run edit
 ```
 
-### 3. Run the Automated Test Suite
-Execute the full pytest suite (17 tests covering ingestion, analytics, ML, and visualizations):
+### 3. Open the Widget Showcase
+To explore every Marimo UI widget in an interactive reference notebook:
+```bash
+pixi run widgets
+```
+
+### 4. Run the Test Suite
+Execute the full pytest suite (17 unit tests):
 ```bash
 pixi run test
 ```
 
-### 4. Re-run Data Ingestion Pipeline
-To refresh the local DuckDB Parquet snapshot:
-```bash
-pixi run ingest
-```
+<details>
+<summary><b>Test Suite Breakdown</b></summary>
+
+| Test File | Target Module | Verified Behaviors |
+|---|---|---|
+| `test_data_loader.py` | `src/data_loader.py` | In-memory DuckDB connections, ICD-9 code mapping, Parquet cache loading |
+| `test_analysis.py` | `src/analysis.py` | KPI calculation accuracy, percentage bounds (0-100%), DuckDB SQL group-bys |
+| `test_modeling.py` | `src/modeling.py` | Scikit-Learn pipeline training, probability bounds (0.0-1.0), risk contrast |
+| `test_visualizations.py` | `src/visualizations.py` | Plotly figure generation, trace structures, clinical chart themes |
+
+</details>
 
 ---
 
-## Machine Learning Benchmark
+## Quick Reference Card
 
-| Model | ROC-AUC | PR-AUC | Sensitivity (Recall) | Key Clinical Strength |
-| :--- | :---: | :---: | :---: | :--- |
-| **Logistic Regression** | `0.781` | `0.612` | `0.764` | Highly interpretable clinical odds-ratio coefficients |
-| **Gradient Boosting** | `0.804` | `0.648` | `0.785` | Superior capture of non-linear comorbidity interactions |
+### Essential Commands
+| Command | Description |
+|---|---|
+| `pixi run app` | Start the clinical intelligence dashboard on port 8000 |
+| `pixi run edit` | Launch Marimo visual DAG code editor |
+| `pixi run widgets` | Run the standalone Marimo widget showcase |
+| `pixi run test` | Run all 17 unit tests via pytest |
+| `pixi run ingest` | Re-sync or refresh local DuckDB Parquet data snapshot |
 
-*Note: Models are evaluated at an optimized healthcare triage decision threshold of `0.35` to prioritize high recall and prevent unmonitored high-risk patient discharges.*
+### Deployment Links
+- **Live Application:** [Hugging Face Space](https://huggingface.co/spaces/haydermuhib/hospital-readmission-marimo)
+- **Code Repository:** [GitHub Profile](https://github.com/haydermuhib/hospital-readmission-marimo)
 
 ---
 
