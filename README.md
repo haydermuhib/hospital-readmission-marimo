@@ -108,7 +108,14 @@ Install [Pixi](https://pixi.sh) (standalone cross-platform package manager):
 curl -fsSL https://pixi.sh/install.sh | bash
 ```
 
-### 1. Launch the Reactive Marimo Application
+### 1. Clone & Setup
+```bash
+git clone git@github.com:haydermuhib/hospital-readmission-marimo.git
+cd hospital-readmission-marimo
+pixi install
+```
+
+### 2. Launch the Reactive Marimo Application
 To start the live interactive dashboard:
 ```bash
 pixi run app
@@ -118,13 +125,13 @@ Or open in Marimo's interactive reactive notebook editor:
 pixi run edit
 ```
 
-### 2. Run the Automated Test Suite
+### 3. Run the Automated Test Suite
 Execute the full pytest suite (17 tests covering ingestion, analytics, ML, and visualizations):
 ```bash
 pixi run test
 ```
 
-### 3. Re-run Data Ingestion Pipeline
+### 4. Re-run Data Ingestion Pipeline
 To refresh the local DuckDB Parquet snapshot:
 ```bash
 pixi run ingest
@@ -145,4 +152,4 @@ pixi run ingest
 
 ## License
 
-This project is licensed under the terms of the [MIT License](file:///home/haider/Desktop/Github%20Portfolio/01%20_marimo_hospital/LICENSE).
+This project is licensed under the terms of the [MIT License](LICENSE).
