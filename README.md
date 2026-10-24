@@ -1,13 +1,3 @@
----
-title: Hospital Readmission Analytics & Clinical Intelligence
-emoji: 🏥
-colorFrom: green
-colorTo: blue
-sdk: gradio
-app_file: main.py
-pinned: false
----
-
 # CardioPulse: Hospital Clinical Risk & Readmission Intelligence
 
 [![Environment: Pixi](https://img.shields.io/badge/environment-pixi-blue.svg)](https://pixi.sh)
