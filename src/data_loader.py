@@ -139,7 +139,7 @@ def clean_hospital_data(df: pd.DataFrame) -> pd.DataFrame:
     return cleaned
 
 
-def generate_synthetic_clinical_cohort(n_records: int = 4000, seed: int = 42) -> pd.DataFrame:
+def generate_synthetic_clinical_cohort(n_records: int = 50000, seed: int = 42) -> pd.DataFrame:
     """Generate a realistic, statistically calibrated hospital patient clinical cohort.
     
     Reflects the distributions of the 130-US Hospitals Diabetes & Inpatient study:
@@ -269,7 +269,7 @@ def load_hospital_data(
         cleaned_df = clean_hospital_data(raw_df)
     except Exception:
         # Fallback calibrated clinical cohort
-        cleaned_df = generate_synthetic_clinical_cohort(n_records=5000 if not limit else limit)
+        cleaned_df = generate_synthetic_clinical_cohort(n_records=50000 if not limit else limit)
 
     # Save to local storage using DuckDB Parquet engine
     try:
