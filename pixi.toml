@@ -18,6 +18,7 @@ pyarrow = ">=14.0.0"
 pytest = ">=7.4.0"
 requests = ">=2.31.0"
 huggingface_hub = ">=2.3.0,<3"
+git-lfs = ">=3.8.1,<4"
 
 [tasks]
 app = "marimo run app.py --port 8000"

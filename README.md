@@ -1,7 +1,7 @@
 ---
 title: Hospital Readmission Analytics & Clinical Intelligence
 emoji: 🏥
-colorFrom: teal
+colorFrom: green
 colorTo: blue
 sdk: gradio
 sdk_version: 4.44.0
