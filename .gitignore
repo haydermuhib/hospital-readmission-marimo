@@ -1,0 +1,12 @@
+.pixi/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+__marimo__/
+*.parquet
+!data/hospital_sample.parquet
+.DS_Store
+.env
