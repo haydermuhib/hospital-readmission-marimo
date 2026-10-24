@@ -1,0 +1,66 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hospital-clinical-analytics"
+version = "0.1.0"
+description = "End-to-End Hospital Readmission & Clinical Risk Intelligence"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+    { name = "Haider", email = "portfolio@example.com" }
+]
+dependencies = [
+    "duckdb>=1.0.0",
+    "pandas>=2.0.0",
+    "numpy>=1.24.0",
+    "scikit-learn>=1.3.0",
+    "plotly>=5.18.0",
+    "marimo>=0.9.0",
+    "pyarrow>=14.0.0",
+    "pytest>=7.4.0",
+    "requests>=2.31.0",
+]
+
+# Pyrefly Type Checker and Language Server Configuration
+[tool.pyrefly]
+python-interpreter-path = ".pixi/envs/default/bin/python"
+site-package-path = [
+    ".pixi/envs/default/lib/python3.12/site-packages"
+]
+search-path = [
+    ".",
+    "src",
+    "tests"
+]
+project-includes = [
+    "src",
+    "tests",
+    "app.py"
+]
+
+check-unannotated-defs = false
+infer-return-types = "enabled"
+
+# Handle dynamic stubs and third-party libraries gracefully
+ignore-missing-imports = [
+    "duckdb.*",
+    "marimo.*",
+    "plotly.*",
+    "sklearn.*",
+    "scipy.*",
+    "pyarrow.*"
+]
+
+[tool.pyrefly.errors]
+missing-import = "warn"
+untyped-import = "ignore"
+
+# Pyright / VS Code LSP compatibility configuration
+[tool.pyright]
+venvPath = "."
+venv = ".pixi/envs/default"
+extraPaths = [".", "src"]
+reportMissingImports = false
+reportMissingTypeStubs = false

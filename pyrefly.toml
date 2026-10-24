@@ -1,0 +1,34 @@
+# Pyrefly Configuration for CardioPulse Hospital Analytics
+python-interpreter-path = ".pixi/envs/default/bin/python"
+
+site-package-path = [
+    ".pixi/envs/default/lib/python3.12/site-packages"
+]
+
+search-path = [
+    ".",
+    "src",
+    "tests"
+]
+
+project-includes = [
+    "src",
+    "tests",
+    "app.py"
+]
+
+check-unannotated-defs = false
+infer-return-types = "enabled"
+
+ignore-missing-imports = [
+    "duckdb.*",
+    "marimo.*",
+    "plotly.*",
+    "sklearn.*",
+    "scipy.*",
+    "pyarrow.*"
+]
+
+[errors]
+missing-import = "warn"
+untyped-import = "ignore"
