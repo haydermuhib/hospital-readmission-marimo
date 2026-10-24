@@ -17,6 +17,7 @@ pinned: false
 [![Machine Learning: Scikit--Learn](https://img.shields.io/badge/ML-scikit--learn-orange.svg)](https://scikit-learn.org)
 [![Visualizations: Plotly](https://img.shields.io/badge/viz-plotly-3b82f6.svg)](https://plotly.com)
 [![Tests: Pytest](https://img.shields.io/badge/tests-passing-brightgreen.svg)](https://pytest.org)
+[![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Live%20Demo-Hugging%20Face%20Spaces-ffd21e)](https://huggingface.co/spaces/haydermuhib/hospital-readmission-marimo)
 
 An end-to-end Data Analyst & Data Scientist clinical intelligence platform analyzing hospital inpatient encounters, glycemic biomarkers, and comorbidity signatures to predict 30-day unplanned hospital readmissions and stratify post-discharge care.
 
