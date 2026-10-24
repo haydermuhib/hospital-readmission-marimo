@@ -5,4 +5,3 @@ pandas>=2.2.0
 pyarrow>=17.0.0
 scikit-learn>=1.5.0
 plotly>=5.24.0
-websockets>=13.0

@@ -1,4 +1,23 @@
 import os
+import sys
+
+# Compatibility shim: In Hugging Face Spaces Gradio containers with websockets < 13,
+# patch ClientConnection to ensure marimo ASGI server boots seamlessly.
+try:
+    import websockets
+    if not hasattr(websockets, "ClientConnection"):
+        try:
+            from websockets.legacy.client import WebSocketClientProtocol
+            websockets.ClientConnection = WebSocketClientProtocol
+        except ImportError:
+            try:
+                from websockets.client import WebSocketClientProtocol
+                websockets.ClientConnection = WebSocketClientProtocol
+            except ImportError:
+                pass
+except Exception:
+    pass
+
 import marimo
 import uvicorn
 
